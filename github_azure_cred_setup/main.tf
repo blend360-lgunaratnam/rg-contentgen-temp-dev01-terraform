@@ -5,7 +5,7 @@ locals {
   federated_subjects = {
     pull-request   = "repo:${local.github_repo}:pull_request"
     main-branch    = "repo:${local.github_repo}:ref:refs/heads/main"
-    env-production = "repo:${local.github_repo}:environment:production"
+    env-development = "repo:${local.github_repo}:environment:development"
   }
 }
 
