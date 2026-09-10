@@ -3,8 +3,8 @@ locals {
   # One federated credential per workflow context. The subject claim differs per trigger,
   # and a job declaring `environment:` uses the environment form even on main.
   federated_subjects = {
-    pull-request   = "repo:${local.github_repo}:pull_request"
-    main-branch    = "repo:${local.github_repo}:ref:refs/heads/main"
+    pull-request    = "repo:${local.github_repo}:pull_request"
+    main-branch     = "repo:${local.github_repo}:ref:refs/heads/main"
     env-development = "repo:${local.github_repo}:environment:development"
   }
 }
