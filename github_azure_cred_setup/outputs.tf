@@ -1,6 +1,6 @@
 output "client_id" {
-    description = "Set as the AZURE_CLIENT_ID GitHub variable."
-    value       = azurerm_user_assigned_identity.github.client_id
+  description = "Set as the AZURE_CLIENT_ID GitHub variable."
+  value       = azurerm_user_assigned_identity.github.client_id
 
 }
 
