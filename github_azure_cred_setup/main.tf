@@ -1,5 +1,10 @@
 locals {
-  github_repo = "blend360-lgunaratnam/rg-contentgen-temp-dev01-terraform"
+  # This repo issues immutable-ID subject claims: GitHub embeds the numeric owner ID and
+  # repo ID in the token's `sub`, as "OWNER@OWNER_ID/REPO@REPO_ID". The plain name form
+  # does NOT match and fails with AADSTS700213. The IDs are stable across renames, which
+  # is the point of the format. Read the exact value from a failed run's error message.
+  github_repo = "blend360-lgunaratnam@138681317/rg-contentgen-temp-dev01-terraform@1362803273"
+
   # One federated credential per workflow context. The subject claim differs per trigger,
   # and a job declaring `environment:` uses the environment form even on main.
   federated_subjects = {
