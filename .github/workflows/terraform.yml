@@ -5,7 +5,7 @@ on:
     branches: [main]
   push:
     branches: [main]
-  workflow_dispatch:   # <-- this is the approval gate: apply only runs when you click it
+  workflow_dispatch:   # manual re-run; also applies, same as a merge to main
 
 permissions:
   id-token: write      # REQUIRED: mints the OIDC token. Without it, auth fails.
@@ -75,7 +75,7 @@ jobs:
             });
 
       - name: Upload plan
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
@@ -85,9 +85,10 @@ jobs:
   apply:
     name: Apply
     needs: plan
-    if: github.event_name == 'workflow_dispatch'
+    # Applies on merge to main (on.push is restricted to main), and on manual dispatch.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    environment: development   # no longer gates (plan limitation), but records deployments
+    environment: development   # records deployments; keeps OIDC subject on env-development
     steps:
       - uses: actions/checkout@v4
 
