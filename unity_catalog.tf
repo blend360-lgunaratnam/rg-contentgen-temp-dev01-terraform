@@ -69,6 +69,11 @@ resource "databricks_grants" "contentgentemp_catalog" {
     principal  = "account users"
     privileges = ["USE_CATALOG", "USE_SCHEMA"]
   }
+
+  grant {
+    principal  = databricks_service_principal.contentgentemp_app.application_id
+    privileges = ["USE_CATALOG", "USE_SCHEMA"]
+  }
 }
 
 resource "databricks_grants" "contentgentemp_schema" {
@@ -77,6 +82,11 @@ resource "databricks_grants" "contentgentemp_schema" {
 
   grant {
     principal  = "account users"
+    privileges = ["USE_SCHEMA", "SELECT", "MODIFY", "CREATE_TABLE"]
+  }
+
+  grant {
+    principal  = databricks_service_principal.contentgentemp_app.application_id
     privileges = ["USE_SCHEMA", "SELECT", "MODIFY", "CREATE_TABLE"]
   }
 }
