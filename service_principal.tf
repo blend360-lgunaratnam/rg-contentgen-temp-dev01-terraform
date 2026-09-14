@@ -7,11 +7,10 @@ resource "databricks_service_principal" "contentgentemp_app" {
   active       = true
 }
 
-# OAuth secrets for a service principal require Databricks account-admin
-# rights (a separate role from workspace admin), which isn't available here
-# — so the secret is generated manually via the workspace admin console
-# (Settings > Identity and access > Service principals > this SP > Secrets)
-# instead of via databricks_service_principal_secret.
+resource "databricks_service_principal_secret" "contentgentemp_app" {
+  provider             = databricks.workspace
+  service_principal_id = databricks_service_principal.contentgentemp_app.id
+}
 
 # Nobody has explicit permissions on the endpoint by default; CAN_MANAGE is
 # what lets this SP create/drop vector search indexes on it.
