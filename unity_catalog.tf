@@ -55,3 +55,28 @@ resource "databricks_schema" "contentgentemp" {
   name         = "contentgentemp_schema_dev"
   comment      = "Schema holding vector search index source/delta tables for contentgen-temp-dev01."
 }
+
+# The catalog/schema are owned by the GitHub CI identity (see the storage
+# credential above for why). Without explicit grants, nobody else has any
+# Unity Catalog privileges on them — they'd exist but be invisible to
+# everyone else in Catalog Explorer. Granted to "account users" (dev/temp
+# environment, simplest option, no per-person management).
+resource "databricks_grants" "contentgentemp_catalog" {
+  provider = databricks.workspace
+  catalog  = databricks_catalog.contentgentemp.name
+
+  grant {
+    principal  = "account users"
+    privileges = ["USE_CATALOG", "USE_SCHEMA"]
+  }
+}
+
+resource "databricks_grants" "contentgentemp_schema" {
+  provider = databricks.workspace
+  schema   = "${databricks_catalog.contentgentemp.name}.${databricks_schema.contentgentemp.name}"
+
+  grant {
+    principal  = "account users"
+    privileges = ["USE_SCHEMA", "SELECT", "MODIFY", "CREATE_TABLE"]
+  }
+}
