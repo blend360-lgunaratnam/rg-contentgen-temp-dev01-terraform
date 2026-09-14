@@ -22,4 +22,9 @@ resource "databricks_permissions" "contentgentemp_vector_search_endpoint" {
     service_principal_name = databricks_service_principal.contentgentemp_app.application_id
     permission_level       = "CAN_MANAGE"
   }
+
+  access_control {
+    user_name        = "logi.gunaratnam@blend360.com"
+    permission_level = "CAN_MANAGE"
+  }
 }
