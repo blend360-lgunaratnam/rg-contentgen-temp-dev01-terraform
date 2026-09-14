@@ -20,7 +20,7 @@ resource "azurerm_cognitive_deployment" "text_embedding_3_small" {
   }
 
   scale {
-    type     = "Standard"
+    type     = "GlobalStandard"
     capacity = 1000
   }
 
