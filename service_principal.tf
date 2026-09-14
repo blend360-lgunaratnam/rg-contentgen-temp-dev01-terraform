@@ -1,17 +1,19 @@
-# Databricks-managed service principal (no Azure AD app registration involved —
-# created directly via the Databricks API, so it needs Databricks admin rights
-# only, not Entra ID Application Administrator rights).
+# Databricks-managed service principal (no Azure AD app registration involved
+# — created directly via the Databricks API, so it needs Databricks admin
+# rights only, not Entra ID Application Administrator rights).
 resource "databricks_service_principal" "contentgentemp_app" {
   provider     = databricks.workspace
   display_name = "sp-contentgentemp-vectorsearch-dev01"
   active       = true
 }
 
-# OAuth secrets for a service principal require Databricks account-admin
-# rights (a separate role from workspace admin), which isn't available here
-# — so the secret is generated manually via the workspace admin console
-# (Settings > Identity and access > Service principals > this SP > Secrets)
-# instead of via databricks_service_principal_secret.
+# OAuth secret creation for this SP fails via Terraform every time (both
+# workspace- and account-scoped providers), always "User is not authorized to
+# perform this operation" — this isn't a scope issue (confirmed by testing
+# the account-level provider separately), just something Terraform's ambient
+# auth can't do here. Generate the secret manually via the workspace admin
+# console instead (Settings > Identity and access > Service principals >
+# sp-contentgentemp-vectorsearch-dev01 > Secrets).
 
 # Nobody has explicit permissions on the endpoint by default; CAN_MANAGE is
 # what lets this SP create/drop vector search indexes on it.
