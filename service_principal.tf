@@ -7,10 +7,12 @@ resource "databricks_service_principal" "contentgentemp_app" {
   active       = true
 }
 
-resource "databricks_service_principal_secret" "contentgentemp_app" {
-  provider             = databricks.workspace
-  service_principal_id = databricks_service_principal.contentgentemp_app.id
-}
+# Not managed here: OAuth secrets appear to only be readable/manageable by
+# whoever created them (not by any other identity, CI's included — CI's plan
+# fails trying to refresh this resource with "User is not authorized to
+# perform this operation" even though it can read everything else). Generate
+# the secret manually per-user, via the workspace admin console (Settings >
+# Identity and access > Service principals > this SP > Secrets).
 
 # Nobody has explicit permissions on the endpoint by default; CAN_MANAGE is
 # what lets this SP create/drop vector search indexes on it.
