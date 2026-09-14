@@ -90,3 +90,56 @@ resource "databricks_grants" "contentgentemp_schema" {
     privileges = ["USE_SCHEMA", "SELECT", "MODIFY", "CREATE_TABLE"]
   }
 }
+
+resource "databricks_schema" "vdb_maintenance" {
+  provider     = databricks.workspace
+  catalog_name = databricks_catalog.contentgentemp.name
+  name         = "vdb_maintenance_schema"
+  comment      = "Tracks vector search index lifecycle for contentgen-temp-dev01 maintenance jobs."
+}
+
+resource "databricks_grants" "vdb_maintenance_schema" {
+  provider = databricks.workspace
+  schema   = "${databricks_catalog.contentgentemp.name}.${databricks_schema.vdb_maintenance.name}"
+
+  grant {
+    principal  = "account users"
+    privileges = ["USE_SCHEMA", "SELECT", "MODIFY", "CREATE_TABLE"]
+  }
+
+  grant {
+    principal  = databricks_service_principal.contentgentemp_app.application_id
+    privileges = ["USE_SCHEMA", "SELECT", "MODIFY", "CREATE_TABLE"]
+  }
+}
+
+resource "databricks_sql_table" "vdb_maintenance" {
+  provider           = databricks.workspace
+  name               = "vdb_maintenance"
+  catalog_name       = databricks_catalog.contentgentemp.name
+  schema_name        = databricks_schema.vdb_maintenance.name
+  warehouse_id       = databricks_sql_endpoint.contentgentemp.id
+  table_type         = "MANAGED"
+  data_source_format = "DELTA"
+
+  column {
+    name = "application"
+    type = "string"
+  }
+  column {
+    name = "index"
+    type = "string"
+  }
+  column {
+    name = "created_at"
+    type = "timestamp"
+  }
+
+  # This table holds operational maintenance records, not disposable/rebuildable
+  # data — protect it from accidental removal via `terraform destroy` or a
+  # resource-block deletion, unlike the script it replaces (which only ever
+  # created, never dropped).
+  lifecycle {
+    prevent_destroy = true
+  }
+}
