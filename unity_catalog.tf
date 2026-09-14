@@ -1,6 +1,12 @@
 resource "databricks_storage_credential" "unity_catalog" {
   provider = databricks.workspace
   name     = "cred-contentgentemp-uc-dev01"
+  # Unity Catalog ownership is separate from Azure RBAC/Databricks account-admin.
+  # This must be the GitHub CI identity (not whoever applies this resource),
+  # otherwise CI's own `terraform plan` can't even read the object back.
+  # id-github-contentgen's client ID, from the github_azure_cred_setup state
+  # (a separate state — not referenceable directly from here).
+  owner = data.azurerm_user_assigned_identity.github.client_id
 
   azure_managed_identity {
     access_connector_id = azurerm_databricks_access_connector.unity_catalog.id
