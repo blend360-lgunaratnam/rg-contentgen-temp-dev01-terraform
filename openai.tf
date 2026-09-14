@@ -12,6 +12,7 @@ resource "azurerm_cognitive_account" "openai" {
 resource "azurerm_cognitive_deployment" "text_embedding_3_small" {
   name                 = "loader-openai-textembedding3smalldev"
   cognitive_account_id = azurerm_cognitive_account.openai.id
+  rai_policy_name      = "Microsoft.DefaultV2"
 
   model {
     format  = "OpenAI"
