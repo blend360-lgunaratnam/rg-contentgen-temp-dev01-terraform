@@ -4,12 +4,6 @@ provider "databricks" {
   azure_workspace_resource_id = azurerm_databricks_workspace.this.id
 }
 
-provider "databricks" {
-  alias      = "account"
-  host       = "https://accounts.azuredatabricks.net"
-  account_id = "f7de7d65-0ddb-44d7-a053-66e2138695ac"
-}
-
 resource "azurerm_databricks_workspace" "this" {
   name                        = "dbw-contentgentemp-dev01"
   resource_group_name         = data.azurerm_resource_group.target.name

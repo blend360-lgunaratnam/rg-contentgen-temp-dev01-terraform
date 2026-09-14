@@ -14,15 +14,15 @@ resource "databricks_external_location" "unity_catalog_root" {
   credential_name = databricks_storage_credential.unity_catalog.id
 }
 
-data "databricks_metastore" "existing" {
-  provider     = databricks.account
-  metastore_id = "8f82548c-bb16-48e4-83e2-3e61ae1a4c20" # metastore_azure_uksouth
-}
-
-resource "databricks_metastore_assignment" "this" {
-  provider     = databricks.account
-  workspace_id = azurerm_databricks_workspace.this.workspace_id
-  metastore_id = data.databricks_metastore.existing.metastore_id
+locals {
+  # metastore_azure_uksouth — the account's existing shared metastore for this
+  # region. New premium workspaces in a region that already has a metastore
+  # get auto-assigned to it at creation time (account-level "automatic Unity
+  # Catalog enablement"), so no `databricks_metastore_assignment` resource is
+  # needed here — that API call requires Databricks account-admin status,
+  # which this identity doesn't have, and would just be redoing what the
+  # platform already does on workspace creation.
+  metastore_id = "8f82548c-bb16-48e4-83e2-3e61ae1a4c20"
 }
 
 # `default_catalog_name` on databricks_metastore_assignment is deprecated —
@@ -33,17 +33,14 @@ resource "databricks_default_namespace_setting" "this" {
   namespace {
     value = databricks_catalog.contentgentemp.name
   }
-  depends_on = [databricks_metastore_assignment.this]
 }
 
 resource "databricks_catalog" "contentgentemp" {
   provider     = databricks.workspace
-  metastore_id = data.databricks_metastore.existing.metastore_id
+  metastore_id = local.metastore_id
   name         = "contentgentemp_cat_dev"
   comment      = "Catalog for contentgen-temp-dev01 vector search indexes and related UC-managed data."
   storage_root = databricks_external_location.unity_catalog_root.url
-
-  depends_on = [databricks_metastore_assignment.this]
 }
 
 resource "databricks_schema" "contentgentemp" {
