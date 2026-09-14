@@ -1,7 +1,7 @@
 provider "databricks" {
-  alias                        = "workspace"
-  host                         = azurerm_databricks_workspace.this.workspace_url
-  azure_workspace_resource_id  = azurerm_databricks_workspace.this.id
+  alias                       = "workspace"
+  host                        = azurerm_databricks_workspace.this.workspace_url
+  azure_workspace_resource_id = azurerm_databricks_workspace.this.id
 }
 
 provider "databricks" {
@@ -11,11 +11,11 @@ provider "databricks" {
 }
 
 resource "azurerm_databricks_workspace" "this" {
-  name                         = "dbw-contentgentemp-dev01"
-  resource_group_name          = data.azurerm_resource_group.target.name
-  location                     = data.azurerm_resource_group.target.location
-  sku                          = "premium"
-  managed_resource_group_name  = "rg-dbw-contentgentemp-dev01-managed"
+  name                        = "dbw-contentgentemp-dev01"
+  resource_group_name         = data.azurerm_resource_group.target.name
+  location                    = data.azurerm_resource_group.target.location
+  sku                         = "premium"
+  managed_resource_group_name = "rg-dbw-contentgentemp-dev01-managed"
 }
 
 resource "azurerm_storage_account" "unity_catalog" {
@@ -36,7 +36,7 @@ resource "azurerm_storage_container" "unity_catalog_root" {
 resource "azurerm_databricks_access_connector" "unity_catalog" {
   name                = "dbac-contentgentemp-uc-dev01"
   resource_group_name = data.azurerm_resource_group.target.name
-  location             = data.azurerm_resource_group.target.location
+  location            = data.azurerm_resource_group.target.location
   identity {
     type = "SystemAssigned"
   }

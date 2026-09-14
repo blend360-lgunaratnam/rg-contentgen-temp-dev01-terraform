@@ -14,35 +14,15 @@ resource "databricks_external_location" "unity_catalog_root" {
   credential_name = databricks_storage_credential.unity_catalog.id
 }
 
-variable "create_new_metastore" {
-  description = "TODO(confirm-metastore): resolve via `az databricks account metastore list` (needs account-admin auth) once network access is restored. false = assign to an existing metastore (assumed default — metastores are typically one-per-region-per-account). true = create a new one."
-  type    = bool
-  default = false
-}
-
 data "databricks_metastore" "existing" {
-  count    = var.create_new_metastore ? 0 : 1
-  provider = databricks.account
-  name     = "" # TODO: fill in once confirmed (or use `id = var.existing_metastore_id`)
-}
-
-resource "databricks_metastore" "new" {
-  count         = var.create_new_metastore ? 1 : 0
-  provider      = databricks.account
-  name          = "metastore-contentgentemp-dev01"
-  storage_root  = "abfss://${azurerm_storage_container.unity_catalog_root.name}@${azurerm_storage_account.unity_catalog.name}.dfs.core.windows.net/"
-  region        = data.azurerm_resource_group.target.location
-  force_destroy = true # dev/temp env — allow clean teardown
-}
-
-locals {
-  metastore_id = var.create_new_metastore ? databricks_metastore.new[0].id : data.databricks_metastore.existing[0].id
+  provider     = databricks.account
+  metastore_id = "8f82548c-bb16-48e4-83e2-3e61ae1a4c20" # metastore_azure_uksouth
 }
 
 resource "databricks_metastore_assignment" "this" {
   provider     = databricks.account
   workspace_id = azurerm_databricks_workspace.this.workspace_id
-  metastore_id = local.metastore_id
+  metastore_id = data.databricks_metastore.existing.metastore_id
 }
 
 # `default_catalog_name` on databricks_metastore_assignment is deprecated —
@@ -58,9 +38,10 @@ resource "databricks_default_namespace_setting" "this" {
 
 resource "databricks_catalog" "contentgentemp" {
   provider     = databricks.workspace
-  metastore_id = local.metastore_id
+  metastore_id = data.databricks_metastore.existing.metastore_id
   name         = "contentgentemp_cat_dev"
   comment      = "Catalog for contentgen-temp-dev01 vector search indexes and related UC-managed data."
+  storage_root = databricks_external_location.unity_catalog_root.url
 
   depends_on = [databricks_metastore_assignment.this]
 }
