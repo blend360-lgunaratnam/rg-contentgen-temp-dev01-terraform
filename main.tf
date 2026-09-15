@@ -2,10 +2,6 @@ data "azurerm_resource_group" "target" {
   name = "rg-contentgen-temp-dev01"
 }
 
-data "azuread_user" "logi_gunaratnam" {
-  user_principal_name = "logi.gunaratnam@blend360.com"
-}
-
 data "azurerm_user_assigned_identity" "github" {
   name                = "id-github-contentgen"
   resource_group_name = data.azurerm_resource_group.target.name
@@ -30,9 +26,12 @@ resource "azurerm_storage_container" "contentgen_landing" {
 # container publicly readable. CI cannot create this itself (see
 # manual_databricks_identity_changes.md) - apply it locally with:
 #   terraform apply -target=azurerm_role_assignment.contentgen_landing_logi_gunaratnam
+# principal_id is logi.gunaratnam@blend360.com's AAD object ID. Hardcoded rather than
+# looked up via the azuread provider, because CI's identity also lacks Microsoft Graph
+# permissions to read users - so a data source lookup fails in CI's plan too.
 resource "azurerm_role_assignment" "contentgen_landing_logi_gunaratnam" {
   scope                = azurerm_storage_container.contentgen_landing.resource_manager_id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azuread_user.logi_gunaratnam.object_id
+  principal_id         = "49ed08da-43e1-4cb6-85fa-50c8bb7fa7e3"
   principal_type       = "User"
 }
