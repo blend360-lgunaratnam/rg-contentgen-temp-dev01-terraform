@@ -25,28 +25,44 @@ resource "azurerm_servicebus_topic" "content_gen_error_events" {
   namespace_id = azurerm_servicebus_namespace.contentgentemp.id
 }
 
+# max_delivery_count is a retry limit, not a concurrency limit: it caps how many
+# times a message may be attempted before dead-lettering, and does nothing to
+# serialise delivery. At 1, a single expired lock or transient handler failure
+# discarded the message permanently with no second attempt, which silently lost
+# reference-load messages and hung content generation runs forever. Consumer-side
+# concurrency is capped instead by maxConcurrentHandlers in
+# ai_backend/dapr_components_contentgen/pubsub.yml.
+#
+# lock_duration defaults to PT1M, but one vdb_loader document takes 60-85s
+# (Document Intelligence extraction + chunking + embedding). PT5M is the maximum
+# Service Bus allows.
+
 resource "azurerm_servicebus_subscription" "vdb_loader" {
   name               = "vdb-loader"
   topic_id           = azurerm_servicebus_topic.vdb_loader_events.id
-  max_delivery_count = 1
+  max_delivery_count = 10
+  lock_duration      = "PT5M"
 }
 
 resource "azurerm_servicebus_subscription" "content_gen" {
   name               = "content-gen"
   topic_id           = azurerm_servicebus_topic.content_gen_main_events.id
-  max_delivery_count = 1
+  max_delivery_count = 10
+  lock_duration      = "PT5M"
 }
 
 resource "azurerm_servicebus_subscription" "content_gen_ai" {
   name               = "content-gen-ai"
   topic_id           = azurerm_servicebus_topic.content_gen_ai_events.id
-  max_delivery_count = 1
+  max_delivery_count = 10
+  lock_duration      = "PT5M"
 }
 
 resource "azurerm_servicebus_subscription" "content_gen_errors" {
   name               = "content-gen"
   topic_id           = azurerm_servicebus_topic.content_gen_error_events.id
-  max_delivery_count = 1
+  max_delivery_count = 10
+  lock_duration      = "PT5M"
 }
 
 # Shared connection string for local Dapr sidecars (dropped into each app's secrets.json).
