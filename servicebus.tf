@@ -75,6 +75,24 @@ resource "azurerm_servicebus_namespace_authorization_rule" "dapr_local_dev" {
   manage       = false
 }
 
+# Owner on the resource group is a control-plane role: it can create and delete
+# topics, but grants no access to the MESSAGES inside them. Data operations -
+# peeking a subscription, or receiving to drain a dead-letter queue - need a
+# data-plane role, exactly like the Storage Blob Data Contributor grant in main.tf.
+# Without this the portal's Service Bus Explorer refuses to purge a DLQ, which is
+# needed whenever a poison message has to be cleared before re-running a flow.
+#
+# Same CI caveat as main.tf: principal_id is hardcoded rather than looked up via the
+# azuread provider, because CI's identity lacks Microsoft Graph permission to read
+# users, so a data source lookup fails in CI's plan. Apply locally with:
+#   terraform apply -target=azurerm_role_assignment.servicebus_data_owner_logi_gunaratnam
+resource "azurerm_role_assignment" "servicebus_data_owner_logi_gunaratnam" {
+  scope                = azurerm_servicebus_namespace.contentgentemp.id
+  role_definition_name = "Azure Service Bus Data Owner"
+  principal_id         = "49ed08da-43e1-4cb6-85fa-50c8bb7fa7e3"
+  principal_type       = "User"
+}
+
 output "servicebus_namespace_name" {
   description = "Name of the Service Bus namespace used for Dapr pub/sub."
   value       = azurerm_servicebus_namespace.contentgentemp.name
