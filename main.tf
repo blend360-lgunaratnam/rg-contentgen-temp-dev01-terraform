@@ -35,3 +35,11 @@ resource "azurerm_role_assignment" "contentgen_landing_logi_gunaratnam" {
   principal_id         = "49ed08da-43e1-4cb6-85fa-50c8bb7fa7e3"
   principal_type       = "User"
 }
+
+
+resource "azurerm_role_assignment" "contentgen_landing_aidan_bowie" {
+  scope                = azurerm_storage_container.contentgen_landing.resource_manager_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = "3729640c-5305-45a1-8e84-4881f9592236"
+  principal_type       = "User"
+}
